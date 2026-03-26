@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generative Music Tools — Lucier &amp; Radigue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F1C6D3;
+  --text:#20269D;
+  --accent-hover:#FF6F91;
+  --border:rgba(32,38,157,0.25);
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.6;
+  padding:0;
+  min-height:100vh;
+}
+
+/* ── Layout ── */
+.page{max-width:860px;margin:0 auto;padding:0 1.5rem}
+
+header{
+  padding:2.5rem 0 1.5rem;
+  border-bottom:1px solid var(--text);
+  margin-bottom:2rem;
+}
+header h1{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:clamp(1.6rem,4vw,2.4rem);
+  font-weight:500;
+  letter-spacing:-0.01em;
+  line-height:1.15;
+  margin-bottom:0.4rem;
+}
+.header-sub{
+  font-size:0.9rem;
+  color:var(--text);
+  opacity:0.6;
+}
+.header-sub a{color:var(--text);text-decoration:underline;}
+.header-sub a:hover{color:var(--accent-hover)}
+
+footer{
+  border-top:1px solid var(--border);
+  padding:1.5rem 0 2.5rem;
+  margin-top:3rem;
+  font-size:0.8rem;
+  color:var(--text);
+  opacity:0.5;
+}
+footer a{color:var(--text);text-decoration:underline;}
+
+/* ── Tool card ── */
+.tool-card{
+  border:1px solid var(--text);
+  padding:1.5rem;
+  margin-bottom:2rem;
+}
+.tool-title{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.75rem;
+  font-weight:500;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--text);
+  opacity:0.5;
+  margin:0 0 1.25rem;
+}
+.tool-divider{
+  border:none;border-top:1px solid var(--border);
+  margin:1.5rem 0;
+}
+
+/* ── Buttons ── */
+.btn{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.85rem;font-weight:500;
+  background:transparent;color:var(--text);
+  border:2px solid var(--text);
+  padding:0.5em 1.2em;cursor:pointer;
+  white-space:nowrap;min-width:90px;
+  text-align:center;display:inline-block;
+  border-radius:0;
+  transition:background-color 0.15s,color 0.15s,border-color 0.15s;
+}
+.btn:hover{background:var(--accent-hover);color:var(--bg);border-color:var(--accent-hover)}
+.btn.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.btn.on:hover{background:var(--accent-hover);color:var(--bg);border-color:var(--accent-hover)}
+.btn:disabled{opacity:0.3;cursor:not-allowed;pointer-events:none}
+
+.pill{
+  font-family:'Inter',sans-serif;font-size:0.78rem;
+  background:transparent;color:var(--text);
+  border:1px solid var(--text);
+  padding:3px 12px;border-radius:0;cursor:pointer;
+  transition:background-color 0.15s,color 0.15s,border-color 0.15s;
+}
+.pill:hover{background:var(--accent-hover);color:var(--bg);border-color:var(--accent-hover)}
+.pill.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.pill.on:hover{background:var(--accent-hover);color:var(--bg);border-color:var(--accent-hover)}
+
+.upload-lbl{
+  font-family:'Inter',sans-serif;font-size:0.78rem;
+  background:transparent;color:var(--text);
+  border:1px solid var(--text);
+  padding:3px 12px;cursor:pointer;display:inline-block;
+  transition:background-color 0.15s,color 0.15s,border-color 0.15s;
+}
+.upload-lbl:hover{background:var(--accent-hover);color:var(--bg);border-color:var(--accent-hover)}
+.upload-lbl.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+#l-file{display:none}
+
+.gen-select{
+  font-family:'Inter',sans-serif;font-size:0.78rem;
+  background:transparent;color:var(--text);
+  border:1px solid var(--text);
+  padding:3px 8px;border-radius:0;cursor:pointer;
+  -webkit-appearance:none;appearance:none;
+}
+
+/* ── Rows ── */
+.row{
+  display:flex;align-items:center;
+  gap:8px;margin-bottom:1em;flex-wrap:wrap;
+}
+.row-lbl{
+  font-family:'Inter',sans-serif;font-size:0.68rem;
+  letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--text);opacity:0.5;
+  margin-right:4px;white-space:nowrap;
+}
+.rec-state{
+  font-family:'Inter',sans-serif;font-size:0.78rem;
+  color:var(--text);opacity:0.7;padding:3px 0;
+}
+
+/* ── Sliders ── */
+.sliders{display:flex;flex-direction:row;gap:24px;margin-bottom:1.25em}
+.ctrl{flex:1;display:flex;flex-direction:column;gap:6px}
+.ctrl input[type=range]{
+  width:100%;-webkit-appearance:none;appearance:none;
+  height:2px;background:var(--text);outline:none;cursor:pointer;opacity:0.5;
+}
+.ctrl input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;
+  border-radius:50%;background:var(--text);cursor:pointer;
+}
+.ctrl input[type=range]::-moz-range-thumb{
+  width:14px;height:14px;border-radius:50%;
+  background:var(--text);border:none;cursor:pointer;
+}
+.ctrl-bot{display:flex;justify-content:space-between;align-items:baseline}
+.ctrl-lbl{font-family:'Inter',sans-serif;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text);opacity:0.5}
+.ctrl-val{font-family:'Inter',sans-serif;font-size:0.75rem;color:var(--text);opacity:0.7}
+
+/* ── Status display ── */
+.iter-display{
+  border:1px solid var(--text);
+  padding:0.75em 1.25em;
+  margin-bottom:1em;
+  display:flex;align-items:center;
+  justify-content:space-between;flex-wrap:wrap;gap:0.75em;
+}
+.iter-count{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:500;color:var(--text)}
+.iter-sub{font-family:'Inter',sans-serif;font-size:0.75rem;color:var(--text);opacity:0.5}
+.iter-status{font-family:'Inter',sans-serif;font-size:0.75rem;color:var(--text);opacity:0.5;font-style:italic}
+
+/* ── Radigue freqs — stable monospaced ── */
+.r-freqs{display:flex;gap:0;margin-bottom:1em}
+.r-freq-col{width:120px;flex-shrink:0;display:flex;flex-direction:column;gap:3px}
+.r-freq-lbl{font-family:'Inter',sans-serif;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text);opacity:0.5}
+.r-freq-val{font-family:'Courier New','Lucida Console',monospace;font-size:0.9rem;font-weight:500;color:var(--text);font-variant-numeric:tabular-nums;min-width:90px}
+
+/* ── Download row ── */
+.dl-row{
+  border-top:1px solid var(--border);
+  padding-top:1em;margin-top:0.5em;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.dl-note{font-family:'Inter',sans-serif;font-size:0.72rem;color:var(--text);opacity:0.4}
+.dl-prog{font-family:'Inter',sans-serif;font-size:0.72rem;color:var(--text);opacity:0.6;display:none}
+
+.hint{
+  font-family:'Inter',sans-serif;font-size:0.8rem;
+  color:var(--text);opacity:0.5;margin-top:1em;text-align:center;
+}
+
+/* ── Instructions ── */
+.instructions{
+  font-size:0.9rem;
+  line-height:1.75;
+  color:var(--text);
+  opacity:0.8;
+  margin-bottom:1.5rem;
+}
+.instructions h2{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:1rem;font-weight:500;
+  letter-spacing:-0.01em;
+  margin:1.5rem 0 0.4rem;
+  opacity:1;
+}
+.instructions h2:first-child{margin-top:0}
+
+@media(max-width:600px){
+  .sliders{flex-direction:column;gap:16px}
+  .r-freqs{flex-wrap:wrap}
+  .r-freq-col{width:100px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <h1>Generative Music Tools</h1>
+  <p class="header-sub">Inspired by Alvin Lucier and Éliane Radigue &nbsp;·&nbsp; <a href="https://www.jordanelias.de/blog/generative-music/" target="_blank" rel="noopener noreferrer">read the article</a></p>
+</header>
+
+<!-- ════ LUCIER ════ -->
+<div class="tool-card">
+  <p class="tool-title">Lucier — iterative room processing</p>
+
+  <div class="iter-display">
+    <div>
+      <div class="iter-count" id="l-count">iteration 0</div>
+      <div class="iter-sub"  id="l-sub">original source · unprocessed</div>
+    </div>
+    <div class="iter-status" id="l-status">ready</div>
+  </div>
+
+  <div class="row">
+    <span class="row-lbl">source →</span>
+    <button class="pill on" id="l-src-gen">generated voice</button>
+    <label  class="upload-lbl" id="l-upload-lbl" for="l-file">upload file</label>
+    <input  type="file" id="l-file" accept="audio/*">
+    <button class="pill" id="l-src-mic">microphone</button>
+    <button class="btn" id="l-record" style="display:none;min-width:80px">&#9679;&#xFE0E; record</button>
+    <span   class="rec-state" id="l-rec-state" style="display:none"></span>
+    <button class="pill" id="l-rec-new" style="display:none">record new</button>
+  </div>
+
+  <div class="row">
+    <span class="row-lbl">volume →</span>
+    <div class="ctrl" style="max-width:220px">
+      <input type="range" id="l-vol" min="0" max="1" value="0.8" step="0.01">
+      <div class="ctrl-bot">
+        <span class="ctrl-lbl">output</span>
+        <span class="ctrl-val" id="l-vol-val">80%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <button class="btn" id="l-play" style="min-width:80px">&#9654;&#xFE0E; play</button>
+    <button class="btn" id="l-loop" style="min-width:70px">loop</button>
+    <button class="btn" id="l-iterate">+ iterate</button>
+    <button class="btn" id="l-reset" style="min-width:70px">reset</button>
+  </div>
+
+  <div class="dl-row">
+    <span class="row-lbl">download →</span>
+    <select class="gen-select" id="l-dl-from"><option value="0">from iter 0</option></select>
+    <select class="gen-select" id="l-dl-to"><option value="0">to iter 0</option></select>
+    <select class="gen-select" id="l-dl-loops">
+      <option value="1">1×</option>
+      <option value="2">2×</option>
+      <option value="4">4×</option>
+      <option value="8">8×</option>
+    </select>
+    <button class="btn" id="l-dl-btn" disabled style="min-width:110px">download wav</button>
+    <span class="dl-note" id="l-dl-note">build iterations first</span>
+    <span class="dl-prog" id="l-dl-prog">rendering…</span>
+  </div>
+
+  <p class="hint">each iteration reinforces resonant frequencies · normalize keeps volume consistent across iterations</p>
+</div>
+
+<!-- ════ RADIGUE ════ -->
+<div class="tool-card">
+  <p class="tool-title">Radigue — evolving drone</p>
+
+  <div class="r-freqs">
+    <div class="r-freq-col">
+      <span class="r-freq-lbl">osc 1</span>
+      <span class="r-freq-val" id="r-f1">110.0 Hz</span>
+    </div>
+    <div class="r-freq-col">
+      <span class="r-freq-lbl">osc 2</span>
+      <span class="r-freq-val" id="r-f2">112.5 Hz</span>
+    </div>
+    <div class="r-freq-col">
+      <span class="r-freq-lbl">osc 3</span>
+      <span class="r-freq-val" id="r-f3">107.5 Hz</span>
+    </div>
+  </div>
+
+  <div class="sliders">
+    <div class="ctrl">
+      <input type="range" id="r-base" min="40" max="300" value="110" step="1">
+      <div class="ctrl-bot">
+        <span class="ctrl-lbl">base freq</span>
+        <span class="ctrl-val" id="r-base-val">110 Hz</span>
+      </div>
+    </div>
+    <div class="ctrl">
+      <input type="range" id="r-detune" min="0.5" max="8" value="2.5" step="0.5">
+      <div class="ctrl-bot">
+        <span class="ctrl-lbl">detuning</span>
+        <span class="ctrl-val" id="r-detune-val">2.5 Hz</span>
+      </div>
+    </div>
+    <div class="ctrl">
+      <input type="range" id="r-drift" min="0.01" max="0.3" value="0.07" step="0.01">
+      <div class="ctrl-bot">
+        <span class="ctrl-lbl">drift rate</span>
+        <span class="ctrl-val" id="r-drift-val">0.07</span>
+      </div>
+    </div>
+    <div class="ctrl">
+      <input type="range" id="r-noise" min="0" max="0.15" value="0.03" step="0.005">
+      <div class="ctrl-bot">
+        <span class="ctrl-lbl">noise floor</span>
+        <span class="ctrl-val" id="r-noise-val">low</span>
+      </div>
+    </div>
+    <div class="ctrl">
+      <input type="range" id="r-vol" min="0" max="1" value="0.4" step="0.01">
+      <div class="ctrl-bot">
+        <span class="ctrl-lbl">volume</span>
+        <span class="ctrl-val" id="r-vol-val">40%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <span class="row-lbl">oscillators →</span>
+    <button class="pill" data-oscs="2">2</button>
+    <button class="pill on" data-oscs="3">3</button>
+  </div>
+
+  <div class="row">
+    <button class="btn" id="r-play">&#9654;&#xFE0E; play</button>
+  </div>
+
+  <div class="dl-row">
+    <span class="row-lbl">download →</span>
+    <select class="gen-select" id="r-dl-dur">
+      <option value="1">1 min (~5 MB)</option>
+      <option value="3">3 min (~15 MB)</option>
+      <option value="5" selected>5 min (~25 MB)</option>
+      <option value="10">10 min (~50 MB)</option>
+      <option value="20">20 min (~100 MB)</option>
+    </select>
+    <button class="btn" id="r-dl-btn" style="min-width:110px">download wav</button>
+    <span class="dl-prog" id="r-dl-prog">rendering…</span>
+  </div>
+
+  <p class="hint">let the drone run for several minutes · changes are most perceptible at low volume</p>
+</div>
+
+<!-- ════ INSTRUCTIONS ════ -->
+<div class="instructions">
+
+  <h2>Lucier — how to use</h2>
+  <p>Choose a source: the generated voice approximation, an uploaded audio file, or a microphone recording (up to 6 seconds). Press play to hear the original. Press <strong>+ iterate</strong> to apply one pass of resonant room filtering. Each iteration reinforces the space's characteristic frequencies while attenuating everything else. The volume is normalised after each iteration so levels stay consistent across 10, 15, or more passes. Press reset to return to the original at any time.</p>
+  <p>The <strong>loop</strong> button makes the current buffer repeat continuously. Use this to sit with a single iteration before deciding whether to process it further.</p>
+  <p>The download section lets you export any range of iterations as a single WAV file, optionally looped. Select from iteration, to iteration, and number of loops. File size is shown as an estimate before rendering.</p>
+
+  <h2>Radigue — how to use</h2>
+  <p>Press play to start the drone. Three oscillators — tuned slightly apart from each other — produce slow beating at their difference frequencies. Each oscillator has its own LFO running at a different rate, so the frequency relationships drift continuously over time. The result is a sound that changes too slowly to notice moment to moment, but is clearly different after several minutes.</p>
+  <p><strong>Base freq</strong> sets the fundamental pitch. <strong>Detuning</strong> controls how far apart the oscillators are — wider detuning produces faster, more audible beating; narrower produces slower, more subtle movement. <strong>Drift rate</strong> controls how quickly the LFOs modulate the frequencies. <strong>Noise floor</strong> adds a thin layer of pink noise beneath the tones, giving them a sense of physical presence.</p>
+  <p>The download renders a WAV file of the specified duration using the current settings. The LFO drift is modelled in the offline render, so the exported file captures the actual slow evolution rather than a static snapshot.</p>
+
+  <h2>Try it in a real room</h2>
+  <p>The physical version of the Lucier process requires only two devices. Record yourself speaking on one device. Play that recording back in a room through a speaker and record it on a second device. Play the second recording back and record it on the first device again. Repeat four or five times. Each pass through the room reinforces its resonant frequencies. Consistent speaker and microphone placement matters — the closer the microphone is to a wall or corner, the more strongly the room modes will be reinforced.</p>
+
+</div>
+
+<footer>
+  <p>Built with the Web Audio API · no server required · open <code>index.html</code> in any modern browser</p>
+  <p style="margin-top:0.4rem"><a href="https://www.jordanelias.de/blog/generative-music/" target="_blank" rel="noopener noreferrer">Read the article</a> · <a href="https://www.jordanelias.de" target="_blank" rel="noopener noreferrer">jordanelias.de</a></p>
+</footer>
+
+</div><!-- /page -->
+
+<script>
+(function(){
+'use strict';
+
+var audioCtx=null;
+function getCtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+function resumeCtx(){var c=getCtx();if(c.state==='suspended')c.resume();return c;}
+
+function normalizeBuffer(buf,target){
+  target=target||0.78;
+  var d=buf.getChannelData(0),peak=0;
+  for(var i=0;i<d.length;i++){var a=Math.abs(d[i]);if(a>peak)peak=a;}
+  if(peak<0.001)return;
+  var s=target/peak;
+  for(var i=0;i<d.length;i++)d[i]*=s;
+}
+
+function audioBufferToWav(buf){
+  var nc=buf.numberOfChannels,sr=buf.sampleRate,len=buf.length,bps=2,dl=len*nc*bps;
+  var wav=new ArrayBuffer(44+dl),v=new DataView(wav);
+  function ws(o,s){for(var i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));}
+  function cl(x){return Math.max(-1,Math.min(1,x));}
+  ws(0,'RIFF');v.setUint32(4,36+dl,true);ws(8,'WAVE');ws(12,'fmt ');
+  v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,nc,true);
+  v.setUint32(24,sr,true);v.setUint32(28,sr*nc*bps,true);
+  v.setUint16(32,nc*bps,true);v.setUint16(34,16,true);
+  ws(36,'data');v.setUint32(40,dl,true);
+  var off=44,chans=[];
+  for(var c=0;c<nc;c++)chans.push(buf.getChannelData(c));
+  for(var i=0;i<len;i++)for(var c=0;c<nc;c++){v.setInt16(off,Math.round(cl(chans[c][i])*32767),true);off+=2;}
+  return wav;
+}
+
+function triggerDownload(ab,name){
+  var b=new Blob([ab],{type:'audio/wav'}),u=URL.createObjectURL(b),a=document.createElement('a');
+  a.href=u;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);
+}
+
+function makePink(ctx){
+  var sr=ctx.sampleRate,len=sr*4,buf=ctx.createBuffer(1,len,sr),d=buf.getChannelData(0);
+  var b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for(var i=0;i<len;i++){
+    var w=Math.random()*2-1;
+    b0=0.99886*b0+w*0.0555179;b1=0.99332*b1+w*0.0750759;
+    b2=0.96900*b2+w*0.1538520;b3=0.86650*b3+w*0.3104856;
+    b4=0.55000*b4+w*0.5329522;b5=-0.7616*b5-w*0.0168980;
+    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11;b6=w*0.115926;
+  }
+  return buf;
+}
+
+/* ════ LUCIER ════ */
+var ROOM=[210,380,580,850,1200,1600],ROOM_Q=24;
+var L={iters:[],cur:0,playing:false,looping:false,recording:false,hasRec:false,processing:false,vol:0.8};
+var lSrc=null,lGain=null,mRec=null,recChunks=[];
+
+function genVoice(ctx){
+  var sr=ctx.sampleRate,len=Math.floor(sr*2.5);
+  var buf=ctx.createBuffer(1,len,sr),d=buf.getChannelData(0);
+  var b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for(var i=0;i<len;i++){
+    var w=Math.random()*2-1;
+    b0=0.99886*b0+w*0.0555179;b1=0.99332*b1+w*0.0750759;
+    b2=0.96900*b2+w*0.1538520;b3=0.86650*b3+w*0.3104856;
+    b4=0.55000*b4+w*0.5329522;b5=-0.7616*b5-w*0.0168980;
+    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.12;b6=w*0.115926;
+  }
+  var atk=Math.floor(sr*0.08),dec=Math.floor(sr*0.25);
+  for(var i=0;i<atk;i++)d[i]*=i/atk;
+  for(var i=0;i<dec;i++)d[len-1-i]*=i/dec;
+  return applyFormants(ctx,buf);
+}
+
+function applyFormants(ctx,buf){
+  var sr=ctx.sampleRate,len=buf.length;
+  var off=new OfflineAudioContext(1,len,sr);
+  var src=off.createBufferSource();
+  var c=off.createBuffer(1,len,sr);c.getChannelData(0).set(buf.getChannelData(0));src.buffer=c;
+  var mg=off.createGain();mg.gain.value=0.7;mg.connect(off.destination);
+  [[730,8],[1090,6],[2440,5]].forEach(function(f){
+    var fl=off.createBiquadFilter();fl.type='bandpass';fl.frequency.value=f[0];fl.Q.value=f[1];
+    src.connect(fl);fl.connect(mg);
+  });
+  src.start(0);return off.startRendering();
+}
+
+function applyIter(inBuf){
+  var sr=inBuf.sampleRate,len=inBuf.length;
+  var off=new OfflineAudioContext(1,len,sr);
+  var src=off.createBufferSource();
+  var c=off.createBuffer(1,len,sr);c.getChannelData(0).set(inBuf.getChannelData(0));src.buffer=c;
+  var mg=off.createGain();mg.gain.value=1.0;mg.connect(off.destination);
+  ROOM.forEach(function(freq){
+    var fl=off.createBiquadFilter();fl.type='bandpass';fl.frequency.value=freq;fl.Q.value=ROOM_Q;
+    src.connect(fl);fl.connect(mg);
+  });
+  src.start(0);
+  return off.startRendering().then(function(r){normalizeBuffer(r,0.78);return r;});
+}
+
+function lPlay(){
+  if(L.iters.length===0)return;
+  lStop();
+  var ctx=resumeCtx();
+  lGain=ctx.createGain();lGain.gain.value=L.vol;lGain.connect(ctx.destination);
+  lSrc=ctx.createBufferSource();lSrc.buffer=L.iters[L.cur];lSrc.loop=L.looping;
+  lSrc.connect(lGain);
+  lSrc.onended=function(){if(!L.looping){L.playing=false;setLPlayBtn(false);}};
+  lSrc.start();L.playing=true;setLPlayBtn(true);
+}
+
+function lStop(){
+  if(lSrc){try{lSrc.stop();}catch(e){}lSrc=null;}
+  L.playing=false;setLPlayBtn(false);
+}
+
+function setLPlayBtn(on){
+  var b=document.getElementById('l-play');
+  b.innerHTML=on?'&#9632;&#xFE0E; stop':'&#9654;&#xFE0E; play';
+  b.classList.toggle('on',on);
+}
+
+function lIterate(){
+  if(L.processing||L.iters.length===0)return;
+  lStop();L.processing=true;
+  setLStatus('processing…');
+  document.getElementById('l-iterate').disabled=true;
+  applyIter(L.iters[L.cur]).then(function(r){
+    L.iters=L.iters.slice(0,L.cur+1);L.iters.push(r);L.cur=L.iters.length-1;
+    L.processing=false;
+    document.getElementById('l-iterate').disabled=false;
+    updateLDisplay();updateLSelects();setLStatus('ready');
+    lPlay();
+  }).catch(function(){
+    L.processing=false;document.getElementById('l-iterate').disabled=false;setLStatus('error — try again');
+  });
+}
+
+function lReset(){lStop();L.cur=0;updateLDisplay();updateLSelects();setLStatus('reset');}
+
+function updateLDisplay(){
+  var n=L.cur,tot=L.iters.length;
+  document.getElementById('l-count').textContent='iteration '+n;
+  document.getElementById('l-sub').textContent=n===0?'original source · unprocessed':n+' of '+(tot-1)+' iteration'+(tot-1===1?'':'s');
+}
+
+function setLStatus(m){document.getElementById('l-status').textContent=m;}
+
+function updateLSelects(){
+  var max=L.iters.length-1;
+  var fr=document.getElementById('l-dl-from'),to=document.getElementById('l-dl-to');
+  fr.innerHTML='';to.innerHTML='';
+  for(var i=0;i<=max;i++){
+    fr.innerHTML+='<option value="'+i+'">from iter '+i+'</option>';
+    to.innerHTML+='<option value="'+i+'"'+(i===max?' selected':'')+'>to iter '+i+'</option>';
+  }
+  var has=max>=1;
+  document.getElementById('l-dl-btn').disabled=!has;
+  document.getElementById('l-dl-note').textContent=has?'approx '+lEstSize()+' MB':'build iterations first';
+}
+
+function lEstSize(){
+  var fr=parseInt(document.getElementById('l-dl-from').value,10);
+  var to=parseInt(document.getElementById('l-dl-to').value,10);
+  var lp=parseInt(document.getElementById('l-dl-loops').value,10);
+  return ((Math.max(0,to-fr+1)*lp*0.22)).toFixed(1);
+}
+
+function lDownload(){
+  var fr=parseInt(document.getElementById('l-dl-from').value,10);
+  var to=parseInt(document.getElementById('l-dl-to').value,10);
+  var lp=parseInt(document.getElementById('l-dl-loops').value,10);
+  if(to<fr)to=fr;
+  var bufs=[];
+  for(var l=0;l<lp;l++)for(var i=fr;i<=to;i++)if(L.iters[i])bufs.push(L.iters[i]);
+  if(!bufs.length)return;
+  var btn=document.getElementById('l-dl-btn'),note=document.getElementById('l-dl-note'),prog=document.getElementById('l-dl-prog');
+  btn.disabled=true;note.style.display='none';prog.style.display='inline';
+  var sr=bufs[0].sampleRate,total=bufs.reduce(function(s,b){return s+b.length;},0);
+  var off=new OfflineAudioContext(1,total,sr);
+  var offset=0;
+  bufs.forEach(function(b){
+    var s=off.createBufferSource(),c=off.createBuffer(1,b.length,sr);
+    c.getChannelData(0).set(b.getChannelData(0));s.buffer=c;s.connect(off.destination);
+    s.start(offset/sr);offset+=b.length;
+  });
+  off.startRendering().then(function(r){
+    triggerDownload(audioBufferToWav(r),'lucier-iter'+fr+'-'+to+'-x'+lp+'.wav');
+    btn.disabled=false;prog.style.display='none';note.style.display='inline';
+  }).catch(function(){
+    btn.disabled=false;prog.style.display='none';note.textContent='export failed';note.style.display='inline';
+  });
+}
+
+function loadBuf(decoded,label){
+  normalizeBuffer(decoded,0.78);
+  L.iters=[decoded];L.cur=0;
+  document.getElementById('l-iterate').disabled=false;
+  updateLDisplay();updateLSelects();setLStatus(label||'ready');
+}
+
+function loadGen(){
+  lStop();setLSrcUI('gen');setLStatus('generating…');document.getElementById('l-iterate').disabled=true;
+  genVoice(getCtx()).then(function(b){loadBuf(b,'ready');}).catch(function(){setLStatus('failed');});
+}
+
+function loadFile(file){
+  lStop();
+  var r=new FileReader();
+  r.onload=function(e){
+    getCtx().decodeAudioData(e.target.result,function(d){
+      loadBuf(d,'loaded: '+file.name.substring(0,24));setLSrcUI('file');
+    },function(){setLStatus('could not decode file');});
+  };
+  r.readAsArrayBuffer(file);
+}
+
+function startRec(){
+  if(L.recording){stopRec();return;}
+  navigator.mediaDevices.getUserMedia({audio:true,video:false}).then(function(stream){
+    recChunks=[];mRec=new MediaRecorder(stream);
+    mRec.ondataavailable=function(e){if(e.data.size>0)recChunks.push(e.data);};
+    mRec.onstop=function(){
+      stream.getTracks().forEach(function(t){t.stop();});
+      var blob=new Blob(recChunks,{type:'audio/webm'});
+      var fr=new FileReader();
+      fr.onload=function(ev){
+        getCtx().decodeAudioData(ev.target.result,function(d){
+          normalizeBuffer(d,0.78);L.iters=[d];L.cur=0;L.hasRec=true;L.recording=false;
+          document.getElementById('l-iterate').disabled=false;
+          updateLDisplay();updateLSelects();setRecState('has_rec');setLStatus('ready');
+        },function(){setLStatus('decode failed');});
+      };
+      fr.readAsArrayBuffer(blob);
+    };
+    mRec.start();L.recording=true;setRecState('rec');setLStatus('recording… (max 6s)');
+    setTimeout(function(){if(L.recording)stopRec();},6000);
+  }).catch(function(){setLStatus('mic access denied');});
+}
+
+function stopRec(){if(mRec&&L.recording)mRec.stop();}
+
+function setRecState(s){
+  var rb=document.getElementById('l-record'),sl=document.getElementById('l-rec-state'),nb=document.getElementById('l-rec-new');
+  if(s==='idle'){rb.innerHTML='&#9679;&#xFE0E; record';rb.classList.remove('on');rb.style.display='inline-block';sl.style.display='none';nb.style.display='none';}
+  else if(s==='rec'){rb.innerHTML='&#9632;&#xFE0E; stop';rb.classList.add('on');rb.style.display='inline-block';sl.style.display='none';nb.style.display='none';}
+  else if(s==='has_rec'){rb.style.display='none';sl.textContent='using recording';sl.style.display='inline';nb.style.display='inline-block';}
+}
+
+function setLSrcUI(t){
+  document.getElementById('l-src-gen').classList.toggle('on',t==='gen');
+  document.getElementById('l-src-mic').classList.toggle('on',t==='mic');
+  document.getElementById('l-upload-lbl').classList.toggle('on',t==='file');
+  var showMic=t==='mic';
+  document.getElementById('l-record').style.display=showMic&&!L.hasRec?'inline-block':'none';
+  document.getElementById('l-rec-state').style.display=showMic&&L.hasRec?'inline':'none';
+  document.getElementById('l-rec-new').style.display=showMic&&L.hasRec?'inline-block':'none';
+  if(showMic&&!L.hasRec)setRecState('idle');
+}
+
+/* ════ RADIGUE ════ */
+var R={base:110,det:2.5,drift:0.07,noise:0.03,oscs:3,vol:0.4,playing:false};
+var rO=[],rL=[],rMaster=null,rNSrc=null,rNGain=null,rTmr=null;
+
+function startR(){
+  stopR();var ctx=resumeCtx();
+  rMaster=ctx.createGain();rMaster.gain.value=R.vol;rMaster.connect(ctx.destination);
+  var freqs=R.oscs===2?[R.base-R.det/2,R.base+R.det/2]:[R.base-R.det,R.base,R.base+R.det];
+  freqs.forEach(function(f,i){
+    var o=ctx.createOscillator();o.type='sine';o.frequency.value=f;
+    var og=ctx.createGain();og.gain.value=1/R.oscs;o.connect(og);og.connect(rMaster);
+    var lf=ctx.createOscillator(),lg=ctx.createGain();
+    lf.type='sine';lf.frequency.value=R.drift*(0.6+i*0.35);lg.gain.value=R.det*0.4;
+    lf.connect(lg);lg.connect(o.frequency);o.start();lf.start();rO.push(o);rL.push(lf);
+  });
+  if(R.noise>0){
+    var nb=makePink(ctx);rNSrc=ctx.createBufferSource();rNSrc.buffer=nb;rNSrc.loop=true;
+    rNGain=ctx.createGain();rNGain.gain.value=R.noise;rNSrc.connect(rNGain);rNGain.connect(rMaster);rNSrc.start();
+  }
+  R.playing=true;
+  document.getElementById('r-play').innerHTML='&#9632;&#xFE0E; stop';
+  document.getElementById('r-play').classList.add('on');
+  rTmr=setInterval(updateRDisp,250);updateRDisp();
+}
+
+function stopR(){
+  rO.forEach(function(o){try{o.stop();}catch(e){}});rL.forEach(function(l){try{l.stop();}catch(e){}});
+  if(rNSrc){try{rNSrc.stop();}catch(e){}rNSrc=null;rNGain=null;}
+  rO=[];rL=[];rMaster=null;
+  if(rTmr){clearInterval(rTmr);rTmr=null;}
+  R.playing=false;
+  document.getElementById('r-play').innerHTML='&#9654;&#xFE0E; play';
+  document.getElementById('r-play').classList.remove('on');
+}
+
+function updateRDisp(){
+  ['r-f1','r-f2','r-f3'].forEach(function(id,i){
+    var el=document.getElementById(id);if(!el)return;
+    el.textContent=rO[i]?rO[i].frequency.value.toFixed(1)+' Hz':'—';
+  });
+}
+
+function restartR(){if(R.playing){stopR();startR();}}
+
+function noiseLabel(v){if(v<0.005)return'off';if(v<0.04)return'low';if(v<0.09)return'medium';return'high';}
+
+function rDownload(){
+  var mins=parseInt(document.getElementById('r-dl-dur').value,10);
+  var secs=mins*60,sr=44100;
+  var btn=document.getElementById('r-dl-btn'),prog=document.getElementById('r-dl-prog');
+  btn.disabled=true;prog.style.display='inline';
+  var off=new OfflineAudioContext(2,sr*secs,sr);
+  var m=off.createGain();m.gain.value=R.vol;m.connect(off.destination);
+  var freqs=R.oscs===2?[R.base-R.det/2,R.base+R.det/2]:[R.base-R.det,R.base,R.base+R.det];
+  freqs.forEach(function(f,i){
+    var o=off.createOscillator();o.type='sine';o.frequency.value=f;
+    var og=off.createGain();og.gain.value=1/R.oscs;o.connect(og);og.connect(m);
+    var lf=off.createOscillator(),lg=off.createGain();
+    lf.type='sine';lf.frequency.value=R.drift*(0.6+i*0.35);lg.gain.value=R.det*0.4;
+    lf.connect(lg);lg.connect(o.frequency);o.start(0);lf.start(0);
+  });
+  if(R.noise>0){
+    var nb=makePink(off);var ts=sr*secs;
+    var fb=off.createBuffer(1,ts,sr),fd=fb.getChannelData(0),sd=nb.getChannelData(0);
+    for(var i=0;i<ts;i++)fd[i]=sd[i%nb.length];
+    var ns=off.createBufferSource();ns.buffer=fb;
+    var ng=off.createGain();ng.gain.value=R.noise;ns.connect(ng);ng.connect(m);ns.start(0);
+  }
+  off.startRendering().then(function(r){
+    triggerDownload(audioBufferToWav(r),'radigue-drone-'+mins+'min.wav');
+    btn.disabled=false;prog.style.display='none';
+  }).catch(function(){btn.disabled=false;prog.style.display='none';});
+}
+
+/* ════ INIT ════ */
+document.getElementById('l-src-gen').addEventListener('click',function(){setLSrcUI('gen');loadGen();});
+document.getElementById('l-src-mic').addEventListener('click',function(){
+  L.hasRec=false;setLSrcUI('mic');lStop();L.iters=[];updateLDisplay();updateLSelects();setLStatus('press record and speak');
+});
+document.getElementById('l-file').addEventListener('change',function(e){if(e.target.files&&e.target.files[0])loadFile(e.target.files[0]);});
+document.getElementById('l-record').addEventListener('click',startRec);
+document.getElementById('l-rec-new').addEventListener('click',function(){
+  L.hasRec=false;L.iters=[];lStop();updateLDisplay();updateLSelects();setRecState('idle');setLStatus('press record and speak');
+});
+document.getElementById('l-play').addEventListener('click',function(){if(L.playing)lStop();else lPlay();});
+document.getElementById('l-loop').addEventListener('click',function(){
+  L.looping=!L.looping;this.classList.toggle('on',L.looping);if(lSrc)lSrc.loop=L.looping;
+});
+document.getElementById('l-iterate').addEventListener('click',lIterate);
+document.getElementById('l-reset').addEventListener('click',lReset);
+document.getElementById('l-vol').addEventListener('input',function(e){
+  L.vol=parseFloat(e.target.value);
+  document.getElementById('l-vol-val').textContent=Math.round(L.vol*100)+'%';
+  if(lGain)lGain.gain.setValueAtTime(L.vol,getCtx().currentTime);
+});
+document.getElementById('l-dl-btn').addEventListener('click',lDownload);
+['l-dl-from','l-dl-to','l-dl-loops'].forEach(function(id){
+  document.getElementById(id).addEventListener('change',function(){
+    if(L.iters.length>1)document.getElementById('l-dl-note').textContent='approx '+lEstSize()+' MB';
+  });
+});
+
+document.getElementById('r-base').addEventListener('input',function(e){R.base=parseInt(e.target.value,10);document.getElementById('r-base-val').textContent=R.base+' Hz';restartR();});
+document.getElementById('r-detune').addEventListener('input',function(e){R.det=parseFloat(e.target.value);document.getElementById('r-detune-val').textContent=R.det+' Hz';restartR();});
+document.getElementById('r-drift').addEventListener('input',function(e){R.drift=parseFloat(e.target.value);document.getElementById('r-drift-val').textContent=R.drift.toFixed(2);restartR();});
+document.getElementById('r-noise').addEventListener('input',function(e){R.noise=parseFloat(e.target.value);document.getElementById('r-noise-val').textContent=noiseLabel(R.noise);restartR();});
+document.getElementById('r-vol').addEventListener('input',function(e){
+  R.vol=parseFloat(e.target.value);document.getElementById('r-vol-val').textContent=Math.round(R.vol*100)+'%';
+  if(rMaster)rMaster.gain.setValueAtTime(R.vol,getCtx().currentTime);
+});
+document.querySelectorAll('[data-oscs]').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    R.oscs=parseInt(btn.getAttribute('data-oscs'),10);
+    document.querySelectorAll('[data-oscs]').forEach(function(b){b.classList.toggle('on',b===btn);});
+    var f3=document.getElementById('r-f3');
+    if(f3)f3.closest('.r-freq-col').style.visibility=R.oscs===3?'visible':'hidden';
+    restartR();
+  });
+});
+document.getElementById('r-play').addEventListener('click',function(){if(R.playing)stopR();else startR();});
+document.getElementById('r-dl-btn').addEventListener('click',rDownload);
+
+/* Boot */
+loadGen();updateLSelects();
+}());
+</script>
+</body>
+</html>
